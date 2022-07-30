@@ -11,6 +11,7 @@ import {EthereumIndexer} from 'ethereum-indexer';
 import { JSONRPCProvider } from "./utils/JSONRPCProvider";
 import { EventListFSStore } from "./processor/EventListFSStore";
 import { loadContracts } from "./utils/contracts";
+import { EventCache } from './processor/EventCache';
 
 const args = process.argv.slice(2);
 const deploymentFolder = args[0];
@@ -22,7 +23,11 @@ if (!deploymentFolder) {
 
 const contractsData = loadContracts(deploymentFolder);
 
-const indexer = new EthereumIndexer(new JSONRPCProvider(process.env.ETHEREUM_NODE), new EventListFSStore('logs'), contractsData);
+const folder = 'data';
+const fsProcessor = new EventListFSStore(folder);
+const cached = new EventCache(folder, fsProcessor);
+
+const indexer = new EthereumIndexer(new JSONRPCProvider(process.env.ETHEREUM_NODE), cached, contractsData);
 let lastSync;
 async function index() {
     lastSync = await indexer.indexMore();

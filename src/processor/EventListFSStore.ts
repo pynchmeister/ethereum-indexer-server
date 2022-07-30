@@ -1,5 +1,6 @@
 import { ContractsInfo, EventProcessor, EventWithId, LastSync } from "ethereum-indexer";
 import fs from 'fs';
+import path from 'path';
 
 function lexicographicNumber15(num: number): string {
     return num.toString().padStart(15, '0');
@@ -7,12 +8,15 @@ function lexicographicNumber15(num: number): string {
 
 export class EventListFSStore implements EventProcessor {
 
-    constructor(protected folder: string) {}
-
-    async load(contractsData: ContractsInfo): Promise<LastSync> {
+    protected folder: string;
+    constructor(folder: string) {
+        this.folder = path.join(folder, 'logs');
         try {
             fs.mkdirSync(this.folder, {recursive: true});
         } catch(err) {}
+    }
+
+    async load(contractsData: ContractsInfo): Promise<LastSync> {
         // TODO check if contractsData matches old sync
         try {
             const content = fs.readFileSync(this.folder + `/lastSync.json`, 'utf8');
