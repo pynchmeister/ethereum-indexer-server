@@ -5,7 +5,7 @@ function lexicographicNumber15(num: number): string {
     return num.toString().padStart(15, '0');
 }
 
-export class EventList implements EventProcessor {
+export class EventListFSStore implements EventProcessor {
 
     constructor(protected folder: string) {}
 

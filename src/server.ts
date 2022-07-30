@@ -9,7 +9,7 @@ import bodyParser from "koa-bodyparser";
 
 import {EthereumIndexer} from 'ethereum-indexer';
 import { JSONRPCProvider } from "./utils/JSONRPCProvider";
-import { EventList } from "./processor/EventList";
+import { EventListFSStore } from "./processor/EventListFSStore";
 import { loadContracts } from "./utils/contracts";
 
 const args = process.argv.slice(2);
@@ -22,7 +22,7 @@ if (!deploymentFolder) {
 
 const contractsData = loadContracts(deploymentFolder);
 
-const indexer = new EthereumIndexer(new JSONRPCProvider(process.env.ETHEREUM_NODE), new EventList('logs'), contractsData);
+const indexer = new EthereumIndexer(new JSONRPCProvider(process.env.ETHEREUM_NODE), new EventListFSStore('logs'), contractsData);
 let lastSync;
 async function index() {
     lastSync = await indexer.indexMore();
