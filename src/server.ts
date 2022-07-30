@@ -1,27 +1,47 @@
-import * as Koa from "koa";
-import * as Router from "koa-router";
+import 'dotenv/config';
 
-import * as logger from "koa-logger";
-import * as json from "koa-json";
-import * as bodyParser from "koa-bodyparser";
+import Koa from "koa";
+import Router from "koa-router";
+
+import logger from "koa-logger";
+import json from "koa-json";
+import bodyParser from "koa-bodyparser";
+
+import {EthereumIndexer} from 'ethereum-indexer';
+import { JSONRPCProvider } from "./utils/JSONRPCProvider";
+import { EventList } from "./processor/EventList";
+import { loadContracts } from "./utils/contracts";
+
+const args = process.argv.slice(2);
+const deploymentFolder = args[0];
+
+if (!deploymentFolder) {
+    console.error(`no deployment folder provided`);
+    process.exit(1);
+}
+
+const contractsData = loadContracts(deploymentFolder);
+
+const indexer = new EthereumIndexer(new JSONRPCProvider(process.env.ETHEREUM_NODE), new EventList('logs'), contractsData);
+let lastSync;
+async function index() {
+    lastSync = await indexer.indexMore();
+    if (lastSync.latestBlock - lastSync.lastToBlock < 1) {
+        setTimeout(index, 1000);
+    } else {
+        index();
+    }
+}
+index();
+
+
+
 
 const app = new Koa();
 const router = new Router();
 
-interface HelloRequest {
-  name: string;
-}
-
-// Hello world
-router.post("/", async (ctx, next) => {
-  const { name } = <HelloRequest>ctx.request.body;
-  ctx.body = { name, test: 1 };
-  await next();
-});
-
 router.get("/", async (ctx, next) => {
-    const { name } = {name: 'hhh'};
-    ctx.body = { name, test: 1 };
+    ctx.body = { lastSync };
     await next();
 });
 
@@ -30,9 +50,11 @@ app.use(json());
 app.use(logger());
 app.use(bodyParser());
 
-// Routes
 app.use(router.routes()).use(router.allowedMethods());
 
-app.listen(3000, () => {
-  console.log("Koa started");
+
+const port = 14385;
+
+app.listen(port, () => {
+  console.log(`server started on port: ${port}`);
 });
