@@ -30,7 +30,13 @@ const cached = new EventCache(folder, fsProcessor);
 const indexer = new EthereumIndexer(new JSONRPCProvider(process.env.ETHEREUM_NODE), cached, contractsData);
 let lastSync;
 async function index() {
-    lastSync = await indexer.indexMore();
+    try {
+        lastSync = await indexer.indexMore();
+    } catch(err) {
+        setTimeout(index, 1000);
+        return;
+    }
+    
     if (lastSync.latestBlock - lastSync.lastToBlock < 1) {
         setTimeout(index, 1000);
     } else {
@@ -46,6 +52,13 @@ const app = new Koa();
 const router = new Router();
 
 router.get("/", async (ctx, next) => {
+    ctx.body = { lastSync };
+    await next();
+});
+
+
+router.post("/replay", async (ctx, next) => {
+    await cached.replay();
     ctx.body = { lastSync };
     await next();
 });

@@ -16,6 +16,16 @@ export class EventListFSStore implements EventProcessor {
         } catch(err) {}
     }
 
+    async reset() {
+        try {
+            console.log(`reseting...`)
+            fs.rmSync(this.folder, {recursive: true});
+            fs.mkdirSync(this.folder, {recursive: true});
+        } catch(err) {
+            console.error(`failed to reset : ${err}`);
+        }
+    }
+
     async load(contractsData: ContractsInfo): Promise<LastSync> {
         // TODO check if contractsData matches old sync
         try {
