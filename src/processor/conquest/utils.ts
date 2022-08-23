@@ -26,27 +26,19 @@ export type Transaction = PouchDB.Core.Document<{
 }>
 
 export async function updateChainAndReturnTransactionID(db: PouchDB.Database, event: EventWithId): Promise<string> {
-  console.log('chain...');
   let chain: Chain = await get(db, 'Chain');
   if (!chain) {
-    console.log(`no Chain`);
     chain = {
        _id: 'Chain',
        blockHash: event.blockHash,
        blockNumber: event.blockNumber
    };
   } else {
-    console.log({
-        chain
-    });
     chain.blockHash = event.blockHash;
     chain.blockNumber = event.blockNumber;
   }
   await db.put(chain);
 
-  const chainStored = await get(db, 'Chain');
-  console.log({chainStored});
-  
   let transactionId = event.transactionHash;
   let transaction: Transaction = await get(db, transactionId);
   if (!transaction) {
@@ -56,10 +48,6 @@ export async function updateChainAndReturnTransactionID(db: PouchDB.Database, ev
       transactionHash: event.transactionHash
     };
     await db.put(transaction)
-  } else {
-      console.log({
-          transaction
-      });
   }
   
   return transactionId;

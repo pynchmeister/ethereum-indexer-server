@@ -52,7 +52,7 @@ export class PouchDBProcessor implements EventProcessor {
             throw new Error(`processing...`);
         }
         this.processing = true;
-        console.log(`processing stream (nextStreamID: ${lastSync.nextStreamID})`)
+        // console.log(`processing stream (nextStreamID: ${lastSync.nextStreamID})`)
 
         try {
             for (const event of eventStream) {
@@ -75,9 +75,6 @@ export class PouchDBProcessor implements EventProcessor {
                 ...lastSync,
             };
             await this.db.put(lastSyncDoc);
-        } catch(err) {
-            console.error({err});
-            throw err;
         } finally {
             this.processing = false;
         }

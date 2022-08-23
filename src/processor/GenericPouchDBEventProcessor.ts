@@ -9,9 +9,9 @@ export abstract class GenericPouchDBEventProcessor implements PouchDBSingleEvent
         this.db = db; // short cut
         const functionName = `on${event.name}`;
         if (this[functionName]) {
-            console.log(`processing ${event.name}...`);
+            // console.log(`processing ${event.name}...`);
             await this[functionName](event);
-            console.log(`... done`);
+            // console.log(`... done`);
         }
     }
 

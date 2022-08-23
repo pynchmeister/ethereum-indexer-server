@@ -65,9 +65,7 @@ router.get("/", async (ctx, next) => {
 
 router.get("/get/:id", async (ctx, next) => {
     const documentID = ctx.params['id'];
-    console.log({documentID});
     const response = await pouchDBProcessor.get(documentID);
-    console.log({response});
     ctx.body = response;
     await next();
 });

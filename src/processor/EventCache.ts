@@ -126,8 +126,8 @@ export class EventCache implements EventProcessor {
             ...lastSync,
             batch: this.batchCounter
         };
-        console.log(`lastSync document`)
-        console.log(JSON.stringify(lastSyncDoc, null, 2))
+        // console.log(`lastSync document`)
+        // console.log(JSON.stringify(lastSyncDoc, null, 2))
         await this.eventDB.put(lastSyncDoc);
         
     }
