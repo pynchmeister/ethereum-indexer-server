@@ -12,6 +12,8 @@ import { JSONRPCProvider } from "./utils/JSONRPCProvider";
 import { EventListFSStore } from "./processor/EventListFSStore";
 import { loadContracts } from "./utils/contracts";
 import { EventCache } from './processor/EventCache';
+import { ConquestEventProcessor } from './processor/conquest/ConquestEventProcessor';
+import { PouchDBProcessor } from './processor/PouchDBProcessor';
 
 const args = process.argv.slice(2);
 const deploymentFolder = args[0];
@@ -24,8 +26,13 @@ if (!deploymentFolder) {
 const contractsData = loadContracts(deploymentFolder);
 
 const folder = 'data';
-const fsProcessor = new EventListFSStore(folder);
-const cached = new EventCache(folder, fsProcessor);
+
+// const fsProcessor = new EventListFSStore(folder);
+// const cached = new EventCache(folder, fsProcessor);
+
+const conquestProcessor = new ConquestEventProcessor();
+const pouchDBProcessor = new PouchDBProcessor(folder, conquestProcessor);
+const cached = new EventCache(folder, pouchDBProcessor);
 
 const indexer = new EthereumIndexer(new JSONRPCProvider(process.env.ETHEREUM_NODE), cached, contractsData);
 let lastSync;
@@ -56,12 +63,29 @@ router.get("/", async (ctx, next) => {
     await next();
 });
 
+router.get("/get/:id", async (ctx, next) => {
+    const documentID = ctx.params['id'];
+    console.log({documentID});
+    const response = await pouchDBProcessor.get(documentID);
+    console.log({response});
+    ctx.body = response;
+    await next();
+});
+
 
 router.post("/replay", async (ctx, next) => {
     await cached.replay();
     ctx.body = { lastSync };
     await next();
 });
+
+router.post("/query", async (ctx, next) => {
+    const response = await pouchDBProcessor.query(ctx.request.body);
+    ctx.body = response;
+    await next();
+});
+
+
 
 // Middlewares
 app.use(json());

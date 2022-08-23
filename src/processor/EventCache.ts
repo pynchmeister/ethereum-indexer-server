@@ -1,7 +1,5 @@
 import { ContractsInfo, EventProcessor, EventWithId, LastSync } from "ethereum-indexer";
-import PouchDB from 'pouchdb';
-import PouchDBFindPlugin from 'pouchdb-find';
-PouchDB.plugin(PouchDBFindPlugin);
+import {PouchDB} from './pouchdb';
 
 function lexicographicNumber15(num: number): string {
     return num.toString().padStart(15, '0');
@@ -18,7 +16,7 @@ export class EventCache implements EventProcessor {
 
     protected init(): Promise<void> {
         this.initialization = this.eventDB.createIndex({
-            index: {fields: ['batch', 'blockNumber', 'blockHash', 'address', 'transactionHash', 'name', 'signature', 'topic']}
+            index: {fields: ['batch']} // 'blockNumber', 'blockHash', 'address', 'transactionHash', 'name', 'signature', 'topic'
         }).then(() => undefined);
         return this.initialization;
     }
@@ -64,8 +62,6 @@ export class EventCache implements EventProcessor {
                     },
                     sort: ['_id'],
                 })).docs.filter(v => v._id !== 'lastSync') as unknown as EventWithId[];
-                console.log('batch first event');
-                console.log(JSON.stringify(events[0], null, 2));
                 if (events.length > 0 ) {
                     const lastEvent = events[events.length -1];
                     await this.processor.process(events, {
@@ -77,7 +73,11 @@ export class EventCache implements EventProcessor {
                 }
                 
             }
-        } catch(err) {}
+        } catch(err) {
+            console.error({
+                err
+            })
+        }
         
         this._replaying = false;
     }
